@@ -25,6 +25,7 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
+      # https://github.com/marketplace/actions/snapcraft-action
       - name: Install snapcraft
         if: matrix.os == 'ubuntu-latest'
         uses: samuelmeuli/action-snapcraft@v3
