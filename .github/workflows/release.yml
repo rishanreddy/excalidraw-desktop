@@ -27,8 +27,7 @@ jobs:
 
       - name: Install snapcraft
         if: matrix.os == 'ubuntu-latest'
-        run: |
-          brew install snapcraft
+        uses: samuelmeuli/action-snapcraft@v3
 
       - name: build-linux
         if: matrix.os == 'ubuntu-latest'
