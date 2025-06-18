@@ -37,6 +37,8 @@ jobs:
       - name: build-mac
         if: matrix.os == 'macos-latest'
         run: npm run build:mac
+        env:
+          GH_TOKEN: ${{ secrets.ACCESS_TOKEN }}
 
       - name: build-win
         if: matrix.os == 'windows-latest'
