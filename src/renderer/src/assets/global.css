@@ -1,0 +1,30 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-primary: #6965db;
+  --color-primary-darker: #5b57d1;
+  --color-primary-darkest: #4a47b1;
+  --color-primary-light: #e3e2fe;
+  --color-background: #ffffff;
+  --color-foreground: #1f2937;
+}
+
+@layer base {
+  @font-face {
+    font-family: 'Virgil';
+    font-weight: 200 300 400 800;
+    src: url(./fonts/Virgil/Virgil-Regular.woff2) format('woff2');
+  }
+  @font-face {
+    font-family: 'Excalifont';
+    font-weight: 800;
+    src: url(./fonts/Excalifont/Excalifont-Regular-a88b72a24fb54c9f94e3b5fdaa7481c9.woff2)
+      format('woff2');
+  }
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: 'Excalifont', 'Virgil', sans-serif;
+}
