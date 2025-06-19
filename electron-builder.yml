@@ -37,7 +37,7 @@ appImage:
   artifactName: ${name}-${version}.${ext}
 npmRebuild: false
 publish:
-  never
+  []
   # provider: never
   # url: https://github.com/rishanreddy/excalidraw-desktop
   # snap:

@@ -19,7 +19,8 @@
     "build:linux": "npm run build && electron-builder --linux"
   },
   "build": {
-    "npmRebuild": false
+    "npmRebuild": false,
+    "publish": []
   },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.1",
