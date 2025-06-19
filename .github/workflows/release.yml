@@ -29,10 +29,14 @@ jobs:
       - name: Install snapcraft
         if: matrix.os == 'ubuntu-latest'
         uses: samuelmeuli/action-snapcraft@v3
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_TOKEN }}
 
       - name: build-linux
         if: matrix.os == 'ubuntu-latest'
         run: npm run build:linux
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_TOKEN }}
 
       - name: build-mac
         if: matrix.os == 'macos-latest'

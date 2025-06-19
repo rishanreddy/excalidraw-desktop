@@ -1,5 +1,5 @@
-appId: com.electron.app
-productName: excalidraw-desktop
+appId: com.excalidraw.desktop
+productName: Excalidraw Desktop
 directories:
   buildResources: build
 files:
@@ -30,9 +30,8 @@ dmg:
 linux:
   target:
     - AppImage
-    - snap
     - deb
-  maintainer: electronjs.org
+  maintainer: Rishan Reddy
   category: Utility
 appImage:
   artifactName: ${name}-${version}.${ext}
