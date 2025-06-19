@@ -37,9 +37,10 @@ appImage:
   artifactName: ${name}-${version}.${ext}
 npmRebuild: false
 publish:
-  provider: generic
-  url: https://github.com/rishanreddy/excalidraw-desktop
-  snap:
-    publish: never
+  []
+  # provider: never
+  # url: https://github.com/rishanreddy/excalidraw-desktop
+  # snap:
+  #   publish: never
 electronDownload:
   mirror: https://npmmirror.com/mirrors/electron/
