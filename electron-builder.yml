@@ -27,21 +27,18 @@ mac:
   notarize: false
 dmg:
   artifactName: ${name}-${version}.${ext}
-linux:
-  target:
-    - AppImage
-    - snap
-    - deb
+  # linux:
+  #   target:
+  #     - AppImage
+  #     - snap
+  #     - deb
   maintainer: Rishan Reddy
   category: Utility
 appImage:
   artifactName: ${name}-${version}.${ext}
 npmRebuild: false
 publish:
-  []
-  # provider: never
-  # url: https://github.com/rishanreddy/excalidraw-desktop
-  # snap:
-  #   publish: never
+  provider: generic
+  url: https://github.com/rishanreddy/excalidraw-desktop
 electronDownload:
   mirror: https://npmmirror.com/mirrors/electron/
