@@ -30,6 +30,7 @@ dmg:
 linux:
   target:
     - AppImage
+    - snap
     - deb
   maintainer: Rishan Reddy
   category: Utility
