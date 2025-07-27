@@ -1,7 +1,7 @@
 {
   "name": "excalidraw-desktop",
   "productName": "Excalidraw Desktop",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A desktop application for Excalidraw, built with Electron and Vite.",
   "main": "./out/main/index.js",
   "author": "Rishan Reddy",
