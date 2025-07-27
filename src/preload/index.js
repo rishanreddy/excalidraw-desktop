@@ -18,6 +18,10 @@ const api = {
   loadDrawing: (filename) => ipcRenderer.invoke('drawings:load', filename),
   listDrawings: () => ipcRenderer.invoke('drawings:list'),
   deleteDrawing: (filename) => ipcRenderer.invoke('drawings:delete', filename),
+  duplicateDrawing: (filename) => ipcRenderer.invoke('drawings:duplicate', filename),
+  renameDrawing: (oldFilename, newFilename) =>
+    ipcRenderer.invoke('drawings:rename', oldFilename, newFilename),
+  importDrawings: (filePaths) => ipcRenderer.invoke('drawings:import', filePaths),
   dialog: {
     showOpenDialog: (operation) => {
       return ipcRenderer.invoke('dialog:showOpenDialog', operation)

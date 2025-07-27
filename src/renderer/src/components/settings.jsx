@@ -1,11 +1,25 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, FolderOpen, Save, AlertCircle, CheckCircle, HardDrive } from 'lucide-react'
+import {
+  ArrowLeft,
+  FolderOpen,
+  Save,
+  AlertCircle,
+  CheckCircle,
+  HardDrive,
+  Moon,
+  Sun,
+  Monitor,
+  Palette
+} from 'lucide-react'
 import { toast } from 'sonner'
 
 const SettingsPage = () => {
   const navigate = useNavigate()
   const [vaultPath, setVaultPath] = useState('')
+  const [theme, setTheme] = useState('system')
+  const [autoSave, setAutoSave] = useState(true)
+  const [autoSaveInterval, setAutoSaveInterval] = useState(30)
   const [unsavedChanges, setUnsavedChanges] = useState(false)
   const [saveStatus, setSaveStatus] = useState(null)
 
@@ -17,7 +31,14 @@ const SettingsPage = () => {
     try {
       if (window.api?.store) {
         const savedVaultPath = (await window.api.store.get('vaultPath')) || ''
+        const savedTheme = (await window.api.store.get('themePreference')) || 'system'
+        const savedAutoSave = (await window.api.store.get('autoSave')) !== false
+        const savedAutoSaveInterval = (await window.api.store.get('autoSaveInterval')) || 30
+
         setVaultPath(savedVaultPath)
+        setTheme(savedTheme)
+        setAutoSave(savedAutoSave)
+        setAutoSaveInterval(savedAutoSaveInterval)
       }
     } catch (error) {
       console.error('Error loading settings:', error)
@@ -29,7 +50,14 @@ const SettingsPage = () => {
     try {
       if (window.api?.store) {
         await window.api.store.set('vaultPath', vaultPath)
+        await window.api.store.set('themePreference', theme)
+        await window.api.store.set('autoSave', autoSave)
+        await window.api.store.set('autoSaveInterval', autoSaveInterval)
       }
+
+      // Apply theme immediately
+      applyTheme(theme)
+
       setUnsavedChanges(false)
       setSaveStatus('saved')
       setTimeout(() => setSaveStatus(null), 2000)
@@ -40,6 +68,25 @@ const SettingsPage = () => {
       setTimeout(() => setSaveStatus(null), 3000)
       toast.error('Failed to save settings')
     }
+  }
+
+  const applyTheme = (newTheme) => {
+    const root = document.documentElement
+
+    if (newTheme === 'system') {
+      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches
+        ? 'dark'
+        : 'light'
+      root.removeAttribute('data-theme')
+    } else {
+      root.setAttribute('data-theme', newTheme)
+    }
+  }
+
+  const handleThemeChange = (newTheme) => {
+    setTheme(newTheme)
+    setUnsavedChanges(true)
+    applyTheme(newTheme) // Apply immediately for preview
   }
 
   const selectVaultFolder = async () => {

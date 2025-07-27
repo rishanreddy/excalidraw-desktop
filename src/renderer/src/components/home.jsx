@@ -13,7 +13,14 @@ import {
   AlertTriangle,
   X,
   RefreshCw,
-  Loader2
+  Loader2,
+  Copy,
+  Edit3,
+  MoreVertical,
+  Type,
+  Square,
+  Minus,
+  Upload
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -25,6 +32,8 @@ const DrawingLibraryPage = () => {
   const [sortBy, setSortBy] = useState('recent')
   const [vaultPath, setVaultPath] = useState('')
   const [deleteModal, setDeleteModal] = useState({ show: false, drawing: null })
+  const [renameModal, setRenameModal] = useState({ show: false, drawing: null, newName: '' })
+  const [contextMenu, setContextMenu] = useState({ show: false, drawing: null, x: 0, y: 0 })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [refreshing, setRefreshing] = useState(false)
@@ -164,6 +173,100 @@ const DrawingLibraryPage = () => {
 
   const cancelDelete = () => {
     setDeleteModal({ show: false, drawing: null })
+  }
+
+  const handleContextMenu = (drawing, event) => {
+    event.preventDefault()
+    setContextMenu({
+      show: true,
+      drawing,
+      x: event.clientX,
+      y: event.clientY
+    })
+  }
+
+  const closeContextMenu = () => {
+    setContextMenu({ show: false, drawing: null, x: 0, y: 0 })
+  }
+
+  const handleRename = (drawing) => {
+    setRenameModal({
+      show: true,
+      drawing,
+      newName: drawing.displayName
+    })
+    closeContextMenu()
+  }
+
+  const confirmRename = async () => {
+    if (!renameModal.drawing || !renameModal.newName.trim()) return
+
+    try {
+      if (window.api?.renameDrawing) {
+        const result = await window.api.renameDrawing(
+          renameModal.drawing.name,
+          renameModal.newName.trim()
+        )
+        if (result.success) {
+          await loadDrawings()
+          toast.success('Drawing renamed successfully')
+        } else {
+          throw new Error(result.error || 'Rename operation failed')
+        }
+      } else {
+        throw new Error('Rename functionality not available')
+      }
+    } catch (error) {
+      console.error('Error renaming drawing:', error)
+      toast.error('Failed to rename drawing: ' + error.message)
+    } finally {
+      setRenameModal({ show: false, drawing: null, newName: '' })
+    }
+  }
+
+  const cancelRename = () => {
+    setRenameModal({ show: false, drawing: null, newName: '' })
+  }
+
+  const handleDuplicate = async (drawing) => {
+    try {
+      if (window.api?.duplicateDrawing) {
+        const result = await window.api.duplicateDrawing(drawing.name)
+        if (result.success) {
+          await loadDrawings()
+          toast.success(`Drawing duplicated as "${result.newFileName}"`)
+        } else {
+          throw new Error(result.error || 'Duplicate operation failed')
+        }
+      } else {
+        throw new Error('Duplicate functionality not available')
+      }
+    } catch (error) {
+      console.error('Error duplicating drawing:', error)
+      toast.error('Failed to duplicate drawing: ' + error.message)
+    }
+    closeContextMenu()
+  }
+
+  const renderThumbnail = (drawing) => {
+    if (!drawing.thumbnail || drawing.thumbnail.elementCount === 0) {
+      return <FileText className="w-8 h-8 text-text-secondary" />
+    }
+
+    const { hasText, hasShapes, hasLines, elementCount } = drawing.thumbnail
+
+    return (
+      <div className="relative w-full h-full flex items-center justify-center">
+        <div className="flex items-center space-x-1">
+          {hasShapes && <Square className="w-4 h-4 text-blue-500" />}
+          {hasLines && <Minus className="w-4 h-4 text-green-500" />}
+          {hasText && <Type className="w-4 h-4 text-purple-500" />}
+        </div>
+        <div className="absolute bottom-1 right-1 text-xs text-text-secondary bg-bg-primary rounded px-1">
+          {elementCount}
+        </div>
+      </div>
+    )
   }
 
   const filteredDrawings = drawings
@@ -339,7 +442,7 @@ const DrawingLibraryPage = () => {
       </div>
 
       {/* Content */}
-      <main className="px-6 py-6">
+      <main className="px-6 py-6" onClick={closeContextMenu}>
         {filteredDrawings.length === 0 ? (
           <div className="text-center py-16">
             {searchTerm ? (
@@ -398,10 +501,11 @@ const DrawingLibraryPage = () => {
                     key={drawing.id}
                     className="group bg-bg-primary rounded-xl border border-border p-4 hover:shadow-lg hover:border-primary/30 transition-all cursor-pointer"
                     onClick={() => openDrawing(drawing.name)}
+                    onContextMenu={(e) => handleContextMenu(drawing, e)}
                   >
                     {/* Thumbnail */}
                     <div className="aspect-video bg-bg-secondary rounded-lg mb-3 flex items-center justify-center">
-                      <FileText className="w-8 h-8 text-text-secondary" />
+                      {renderThumbnail(drawing)}
                     </div>
 
                     {/* Info */}
@@ -413,13 +517,25 @@ const DrawingLibraryPage = () => {
                         >
                           {drawing.displayName}
                         </h3>
-                        <button
-                          onClick={(e) => handleDeleteClick(drawing, e)}
-                          className="p-1 rounded transition-colors text-text-secondary hover:text-red-500 opacity-0 group-hover:opacity-100"
-                          title="Delete drawing"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleContextMenu(drawing, e)
+                            }}
+                            className="p-1 rounded transition-colors text-text-secondary hover:text-primary"
+                            title="More options"
+                          >
+                            <MoreVertical className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={(e) => handleDeleteClick(drawing, e)}
+                            className="p-1 rounded transition-colors text-text-secondary hover:text-red-500"
+                            title="Delete drawing"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
 
                       <div className="flex items-center justify-between text-sm text-text-secondary">
@@ -440,10 +556,11 @@ const DrawingLibraryPage = () => {
                     key={drawing.id}
                     className="group bg-bg-primary rounded-lg border border-border p-4 hover:bg-secondary hover:border-primary/30 transition-all cursor-pointer"
                     onClick={() => openDrawing(drawing.name)}
+                    onContextMenu={(e) => handleContextMenu(drawing, e)}
                   >
                     <div className="flex items-center space-x-4">
                       <div className="w-12 h-12 bg-bg-secondary rounded-lg flex items-center justify-center flex-shrink-0">
-                        <FileText className="w-6 h-6 text-text-secondary" />
+                        {renderThumbnail(drawing)}
                       </div>
 
                       <div className="flex-1 min-w-0">
@@ -462,13 +579,25 @@ const DrawingLibraryPage = () => {
                         </div>
                       </div>
 
-                      <button
-                        onClick={(e) => handleDeleteClick(drawing, e)}
-                        className="p-2 rounded transition-colors text-text-secondary hover:text-red-500 opacity-0 group-hover:opacity-100"
-                        title="Delete drawing"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleContextMenu(drawing, e)
+                          }}
+                          className="p-2 rounded transition-colors text-text-secondary hover:text-primary"
+                          title="More options"
+                        >
+                          <MoreVertical className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={(e) => handleDeleteClick(drawing, e)}
+                          className="p-2 rounded transition-colors text-text-secondary hover:text-red-500"
+                          title="Delete drawing"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -477,6 +606,95 @@ const DrawingLibraryPage = () => {
           </>
         )}
       </main>
+
+      {/* Context Menu */}
+      {contextMenu.show && (
+        <div
+          className="fixed bg-primary-light border border-border rounded-lg shadow-lg py-2 z-50 min-w-32"
+          style={{ left: contextMenu.x, top: contextMenu.y }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            onClick={() => handleRename(contextMenu.drawing)}
+            className="w-full px-3 py-2 text-left text-text-primary hover:bg-bg-secondary transition-colors flex items-center space-x-2 text-sm"
+          >
+            <Edit3 className="w-4 h-4" />
+            <span>Rename</span>
+          </button>
+          <button
+            onClick={() => handleDuplicate(contextMenu.drawing)}
+            className="w-full px-3 py-2 text-left text-text-primary hover:bg-bg-secondary transition-colors flex items-center space-x-2 text-sm"
+          >
+            <Copy className="w-4 h-4" />
+            <span>Duplicate</span>
+          </button>
+          <hr className="my-1 border-border" />
+          <button
+            onClick={() => {
+              handleDeleteClick(contextMenu.drawing, { stopPropagation: () => {} })
+              closeContextMenu()
+            }}
+            className="w-full px-3 py-2 text-left text-red-600 hover:bg-red-50 transition-colors flex items-center space-x-2 text-sm"
+          >
+            <Trash2 className="w-4 h-4" />
+            <span>Delete</span>
+          </button>
+        </div>
+      )}
+
+      {/* Rename Modal */}
+      {renameModal.show && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-primary-light rounded-2xl shadow-2xl border border-border w-full max-w-md">
+            <div className="p-6">
+              <div className="flex items-start space-x-4">
+                <div className="flex-shrink-0 w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                  <Edit3 className="w-6 h-6 text-blue-600" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-lg font-semibold text-text-primary mb-2">Rename Drawing</h3>
+                  <p className="text-text-secondary mb-4 text-sm">
+                    Enter a new name for "{renameModal.drawing?.displayName}"
+                  </p>
+
+                  <input
+                    type="text"
+                    value={renameModal.newName}
+                    onChange={(e) =>
+                      setRenameModal((prev) => ({ ...prev, newName: e.target.value }))
+                    }
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') confirmRename()
+                      if (e.key === 'Escape') cancelRename()
+                    }}
+                    className="w-full px-3 py-2 border border-border rounded-lg text-text-primary bg-bg-primary focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary mb-4"
+                    placeholder="Drawing name"
+                    autoFocus
+                  />
+
+                  <div className="flex space-x-3">
+                    <button
+                      onClick={confirmRename}
+                      disabled={!renameModal.newName.trim()}
+                      className="flex items-center justify-center space-x-2 flex-1 px-4 py-3 bg-primary hover:bg-primary-darker disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-all duration-200"
+                    >
+                      <Edit3 className="w-4 h-4" />
+                      <span>Rename</span>
+                    </button>
+
+                    <button
+                      onClick={cancelRename}
+                      className="flex-1 px-4 py-3 bg-bg-secondary hover:bg-bg-primary border border-border text-text-primary rounded-lg font-medium transition-all duration-200"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Delete Confirmation Modal */}
       {deleteModal.show && (
